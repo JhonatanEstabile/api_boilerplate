@@ -1,0 +1,377 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>controller: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">api_boilerplate/controller/generic_controller.go (42.5%)</option>
+				
+				<option value="file1">api_boilerplate/db/db.go (0.0%)</option>
+				
+				<option value="file2">api_boilerplate/main.go (0.0%)</option>
+				
+				<option value="file3">api_boilerplate/repository/generic_repository.go (100.0%)</option>
+				
+				<option value="file4">api_boilerplate/service/generic_service.go (100.0%)</option>
+				
+				<option value="file5">api_boilerplate/util/registry.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package controller
+
+import (
+        "net/http"
+        "strconv"
+
+        "api_boilerplate/service"
+
+        "github.com/gin-gonic/gin"
+)
+
+type GenericController[T any] struct {
+        Service service.GenericService[T]
+}
+
+func NewGenericController[T any](s service.GenericService[T]) *GenericController[T] <span class="cov8" title="1">{
+        return &amp;GenericController[T]{Service: s}
+}</span>
+
+func (c *GenericController[T]) RegisterRoutes(r *gin.Engine, path string) <span class="cov8" title="1">{
+        group := r.Group(path)
+        group.GET("/", c.GetAll)
+        group.GET("/:id", c.GetByID)
+        group.POST("/", c.Create)
+        group.PUT("/:id", c.Update)
+        group.DELETE("/:id", c.Delete)
+}</span>
+
+func (c *GenericController[T]) GetAll(ctx *gin.Context) <span class="cov8" title="1">{
+        items, err := c.Service.GetAll()
+        if err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov8" title="1">ctx.JSON(http.StatusOK, items)</span>
+}
+
+func (c *GenericController[T]) GetByID(ctx *gin.Context) <span class="cov0" title="0">{
+        id, _ := strconv.ParseInt(ctx.Param("id"), 10, 64)
+        item, err := c.Service.GetByID(id)
+        if err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">ctx.JSON(http.StatusOK, item)</span>
+}
+
+func (c *GenericController[T]) Create(ctx *gin.Context) <span class="cov8" title="1">{
+        var item T
+        if err := ctx.ShouldBindJSON(&amp;item); err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov8" title="1">if err := c.Service.Create(item); err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov8" title="1">ctx.Status(http.StatusCreated)</span>
+}
+
+func (c *GenericController[T]) Update(ctx *gin.Context) <span class="cov0" title="0">{
+        id, _ := strconv.ParseInt(ctx.Param("id"), 10, 64)
+        var item T
+        if err := ctx.ShouldBindJSON(&amp;item); err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">if err := c.Service.Update(id, item); err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">ctx.Status(http.StatusOK)</span>
+}
+
+func (c *GenericController[T]) Delete(ctx *gin.Context) <span class="cov8" title="1">{
+        id, _ := strconv.ParseInt(ctx.Param("id"), 10, 64)
+        if err := c.Service.Delete(id); err != nil </span><span class="cov0" title="0">{
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov8" title="1">ctx.Status(http.StatusNoContent)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package db
+
+import (
+        "log"
+        "time"
+
+        _ "github.com/go-sql-driver/mysql"
+        "github.com/jmoiron/sqlx"
+)
+
+func GetDBConnection() *sqlx.DB <span class="cov0" title="0">{
+        db, err := sqlx.Connect("mysql", "root:root@/api_boilerplate")
+
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatalln("Error opening database: ", err)
+        }</span>
+
+        // See "Important settings" section.
+        <span class="cov0" title="0">db.SetConnMaxLifetime(time.Minute * 3)
+        db.SetMaxOpenConns(10)
+        db.SetMaxIdleConns(10)
+
+        return db</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package main
+
+import (
+        "api_boilerplate/db"
+        "api_boilerplate/model"
+        "api_boilerplate/util"
+
+        "github.com/gin-gonic/gin"
+)
+
+func main() <span class="cov0" title="0">{
+        r := gin.New()
+
+        r.Use(gin.Recovery())
+
+        r.GET("/", func(c *gin.Context) </span><span class="cov0" title="0">{
+                c.String(200, "Health")
+        }</span>)
+
+        <span class="cov0" title="0">dbConn := db.GetDBConnection()
+        defer dbConn.Close()
+
+        util.RegisterGenericResource[model.User](r, dbConn, "user", model.UserFields)
+        util.RegisterGenericResource[model.Product](r, dbConn, "product", model.ProductFields)
+        util.RegisterGenericResource[model.Store](r, dbConn, "store", model.StoreFields)
+
+        port := "0.0.0.0:3030"
+        r.Run(port)</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package repository
+
+import (
+        "fmt"
+        "strings"
+
+        "github.com/jmoiron/sqlx"
+)
+
+type SqlxRepository[T any] struct {
+        DB        *sqlx.DB
+        TableName string
+        Fields    []string
+}
+
+func NewSqlxRepository[T any](
+        db *sqlx.DB,
+        table string,
+        fields []string,
+) *SqlxRepository[T] <span class="cov8" title="1">{
+        return &amp;SqlxRepository[T]{DB: db, TableName: table, Fields: fields}
+}</span>
+
+func (r *SqlxRepository[T]) FindAll() ([]T, error) <span class="cov8" title="1">{
+        var items []T
+        err := r.DB.Select(&amp;items, fmt.Sprintf("SELECT * FROM %s", r.TableName))
+        return items, err
+}</span>
+
+func (r *SqlxRepository[T]) FindByID(id int64) (T, error) <span class="cov8" title="1">{
+        var item T
+        err := r.DB.Get(&amp;item, fmt.Sprintf("SELECT * FROM %s WHERE id = ?", r.TableName), id)
+        return item, err
+}</span>
+
+func (r *SqlxRepository[T]) Create(item T) error <span class="cov8" title="1">{
+        fields := strings.Join(r.Fields, ", ")
+        values := strings.Join(r.Fields, ", :")
+
+        query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (:%s)", r.TableName, fields, values)
+
+        _, err := r.DB.NamedExec(query, item)
+        return err
+}</span>
+
+func (r *SqlxRepository[T]) Update(id int64, item T) error <span class="cov8" title="1">{
+        setClause := strings.Join(r.Fields, " = ?, ") + " = ?"
+
+        query := fmt.Sprintf("UPDATE %s SET %s WHERE id = ?", r.TableName, setClause)
+        _, err := r.DB.NamedExec(query, item)
+        return err
+}</span>
+
+func (r *SqlxRepository[T]) Delete(id int64) error <span class="cov8" title="1">{
+        _, err := r.DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id = ?", r.TableName), id)
+        return err
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package service
+
+type GenericRepository[T any] interface {
+        FindAll() ([]T, error)
+        FindByID(id int64) (T, error)
+        Create(item T) error
+        Update(id int64, item T) error
+        Delete(id int64) error
+}
+
+type GenericService[T any] interface {
+        GetAll() ([]T, error)
+        GetByID(id int64) (T, error)
+        Create(item T) error
+        Update(id int64, item T) error
+        Delete(id int64) error
+}
+
+type GenericServiceImpl[T any] struct {
+        Repo GenericRepository[T]
+}
+
+func NewGenericService[T any](repo GenericRepository[T]) GenericService[T] <span class="cov8" title="1">{
+        return &amp;GenericServiceImpl[T]{Repo: repo}
+}</span>
+
+func (s *GenericServiceImpl[T]) GetAll() ([]T, error) <span class="cov8" title="1">{
+        return s.Repo.FindAll()
+}</span>
+
+func (s *GenericServiceImpl[T]) GetByID(id int64) (T, error) <span class="cov8" title="1">{
+        return s.Repo.FindByID(id)
+}</span>
+
+func (s *GenericServiceImpl[T]) Create(item T) error <span class="cov8" title="1">{
+        return s.Repo.Create(item)
+}</span>
+
+func (s *GenericServiceImpl[T]) Update(id int64, item T) error <span class="cov8" title="1">{
+        return s.Repo.Update(id, item)
+}</span>
+
+func (s *GenericServiceImpl[T]) Delete(id int64) error <span class="cov8" title="1">{
+        return s.Repo.Delete(id)
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package util
+
+import (
+        "api_boilerplate/controller"
+        "api_boilerplate/repository"
+        "api_boilerplate/service"
+
+        "github.com/gin-gonic/gin"
+        "github.com/jmoiron/sqlx"
+)
+
+func RegisterGenericResource[T any](r *gin.Engine, db *sqlx.DB, path string, fields []string) <span class="cov0" title="0">{
+        repo := repository.NewSqlxRepository[T](db, path, fields)
+        service := service.NewGenericService(repo)
+        controller := controller.NewGenericController(service)
+        controller.RegisterRoutes(r, "/"+path)
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
