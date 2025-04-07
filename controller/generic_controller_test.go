@@ -20,15 +20,15 @@ type MockService[T any] struct {
 	GetAllFn  func() ([]T, error)
 	GetByIDFn func(int64) (T, error)
 	CreateFn  func(T) error
-	UpdateFn  func(int64, T) error
+	UpdateFn  func(int64, *gin.Context) error
 	DeleteFn  func(int64) error
 }
 
-func (m *MockService[T]) GetAll() ([]T, error)          { return m.GetAllFn() }
-func (m *MockService[T]) GetByID(id int64) (T, error)   { return m.GetByIDFn(id) }
-func (m *MockService[T]) Create(item T) error           { return m.CreateFn(item) }
-func (m *MockService[T]) Update(id int64, item T) error { return m.UpdateFn(id, item) }
-func (m *MockService[T]) Delete(id int64) error         { return m.DeleteFn(id) }
+func (m *MockService[T]) GetAll() ([]T, error)                    { return m.GetAllFn() }
+func (m *MockService[T]) GetByID(id int64) (T, error)             { return m.GetByIDFn(id) }
+func (m *MockService[T]) Create(item T) error                     { return m.CreateFn(item) }
+func (m *MockService[T]) Update(id int64, ctx *gin.Context) error { return m.UpdateFn(id, ctx) }
+func (m *MockService[T]) Delete(id int64) error                   { return m.DeleteFn(id) }
 
 func setupRouter[T any](controller *GenericController[T]) *gin.Engine {
 	gin.SetMode(gin.TestMode)
@@ -94,5 +94,26 @@ func TestGenericController_Delete(t *testing.T) {
 	router.ServeHTTP(resp, req)
 
 	assert.Equal(t, 204, resp.Code)
+	assert.True(t, called)
+}
+
+func TestGenericController_Update(t *testing.T) {
+	called := false
+	service := &MockService[TestModel]{
+		UpdateFn: func(id int64, ctx *gin.Context) error {
+			called = true
+			return nil
+		},
+	}
+	ctrl := NewGenericController(service)
+	router := setupRouter(ctrl)
+
+	body, _ := json.Marshal(TestModel{Name: "Updated"})
+	req, _ := http.NewRequest("PUT", "/test/1", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	assert.Equal(t, 200, resp.Code)
 	assert.True(t, called)
 }

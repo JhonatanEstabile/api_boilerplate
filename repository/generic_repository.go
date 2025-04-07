@@ -45,6 +45,7 @@ func (r *SqlxRepository[T]) Create(item T) error {
 
 func (r *SqlxRepository[T]) Update(id int64, item T) error {
 	setClauses := generateQueryFields(r.Fields)
+
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = :id", r.TableName, setClauses)
 
 	_, err := r.DB.NamedExec(query, item)
@@ -60,6 +61,10 @@ func (r *SqlxRepository[T]) Delete(id int64) error {
 func generateQueryFields(fields []string) string {
 	var setClauses []string
 	for _, f := range fields {
+		if f == "id" {
+			continue
+		}
+
 		setClauses = append(setClauses, fmt.Sprintf("%s = :%s", f, f))
 	}
 

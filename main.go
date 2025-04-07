@@ -9,6 +9,7 @@ import (
 
 func main() {
 	r := gin.New()
+	gin.SetMode(gin.ReleaseMode)
 	r.Use(gin.Recovery())
 
 	r.GET("/", func(c *gin.Context) {

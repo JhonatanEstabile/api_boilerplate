@@ -59,16 +59,18 @@ func (c *GenericController[T]) Create(ctx *gin.Context) {
 }
 
 func (c *GenericController[T]) Update(ctx *gin.Context) {
-	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 64)
-	var item T
-	if err := ctx.ShouldBindJSON(&item); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	id, err := strconv.ParseInt(ctx.Param("id"), 10, 64)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	if err := c.Service.Update(id, item); err != nil {
+
+	if err := c.Service.Update(id, ctx); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	ctx.Status(http.StatusOK)
 }
 
