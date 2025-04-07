@@ -1,5 +1,7 @@
 package service
 
+import "github.com/gin-gonic/gin"
+
 type GenericRepository[T any] interface {
 	FindAll() ([]T, error)
 	FindByID(id int64) (T, error)
@@ -12,7 +14,7 @@ type GenericService[T any] interface {
 	GetAll() ([]T, error)
 	GetByID(id int64) (T, error)
 	Create(item T) error
-	Update(id int64, item T) error
+	Update(id int64, ctx *gin.Context) error
 	Delete(id int64) error
 }
 
@@ -36,7 +38,17 @@ func (s *GenericServiceImpl[T]) Create(item T) error {
 	return s.Repo.Create(item)
 }
 
-func (s *GenericServiceImpl[T]) Update(id int64, item T) error {
+func (s *GenericServiceImpl[T]) Update(id int64, ctx *gin.Context) error {
+	item, err := s.Repo.FindByID(id)
+
+	if err != nil {
+		return err
+	}
+
+	if err := ctx.ShouldBindJSON(&item); err != nil {
+		return err
+	}
+
 	return s.Repo.Update(id, item)
 }
 

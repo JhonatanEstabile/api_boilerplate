@@ -32,7 +32,7 @@ func TestFindAll(t *testing.T) {
 	mock.ExpectQuery("SELECT \\* FROM test_table").
 		WillReturnRows(rows)
 
-	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"id", "name"})
+	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
 	items, err := repo.FindAll()
 
 	assert.NoError(t, err)
@@ -50,7 +50,7 @@ func TestFindByID(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(row)
 
-	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"id", "name"})
+	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
 	item, err := repo.FindByID(1)
 
 	assert.NoError(t, err)
@@ -62,6 +62,7 @@ func TestCreate(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO test_table (name) VALUES (?)")).
+		WithArgs("Test").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
@@ -74,10 +75,11 @@ func TestUpdate(t *testing.T) {
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE test_table SET id = ?, name = ? WHERE id = ?")).
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE test_table SET name = ? WHERE id = ?")).
+		WithArgs("Updated", 1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"id", "name"})
+	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
 	err := repo.Update(1, TestModel{ID: 1, Name: "Updated"})
 
 	assert.NoError(t, err)
@@ -91,7 +93,7 @@ func TestDelete(t *testing.T) {
 		WithArgs(1).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"id", "name"})
+	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
 	err := repo.Delete(1)
 
 	assert.NoError(t, err)
