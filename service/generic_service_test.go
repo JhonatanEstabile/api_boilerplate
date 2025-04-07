@@ -18,7 +18,9 @@ type MockRepository[T any] struct {
 	DeleteFn   func(int64) error
 }
 
-func (m *MockRepository[T]) FindAll() ([]T, error)         { return m.FindAllFn() }
+func (m *MockRepository[T]) FindAll(query string, filters map[string]interface{}) ([]T, error) {
+	return m.FindAllFn()
+}
 func (m *MockRepository[T]) FindByID(id int64) (T, error)  { return m.FindByIDFn(id) }
 func (m *MockRepository[T]) Create(item T) error           { return m.CreateFn(item) }
 func (m *MockRepository[T]) Update(id int64, item T) error { return m.UpdateFn(id, item) }
@@ -35,8 +37,13 @@ func TestGenericService_GetAll(t *testing.T) {
 			return []TestModel{{ID: 1, Name: "Test"}}, nil
 		},
 	}
+
+	filters := make(map[string]interface{})
+	filters["id"] = int64(1)
+	query := "WHERE id = :id"
+
 	service := NewGenericService[TestModel](mockRepo)
-	result, err := service.GetAll()
+	result, err := service.GetAll(query, filters)
 
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)

@@ -25,19 +25,24 @@ func TestFindAll(t *testing.T) {
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
+	filters := map[string]interface{}{"id": int64(1)}
+	query := "WHERE id = :id"
+
 	rows := sqlmock.NewRows([]string{"id", "name"}).
 		AddRow(1, "Item1").
 		AddRow(2, "Item2")
 
-	mock.ExpectQuery("SELECT \\* FROM test_table").
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM test_table WHERE id = ?")).
+		WithArgs(int64(1)).
 		WillReturnRows(rows)
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
-	items, err := repo.FindAll()
+	items, err := repo.FindAll(query, filters)
 
 	assert.NoError(t, err)
 	assert.Len(t, items, 2)
 	assert.Equal(t, int64(1), items[0].ID)
+	assert.Equal(t, "Item1", items[0].Name)
 }
 
 func TestFindByID(t *testing.T) {
