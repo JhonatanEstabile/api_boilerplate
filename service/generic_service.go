@@ -6,18 +6,18 @@ import (
 
 type GenericRepository[T any] interface {
 	FindAll(query string, filtersQUery map[string]interface{}) ([]T, error)
-	FindByID(id int64) (T, error)
+	FindByID(id string) (T, error)
 	Create(item T) error
-	Update(id int64, item T) error
-	Delete(id int64) error
+	Update(id string, item T) error
+	Delete(id string) error
 }
 
 type GenericService[T any] interface {
 	GetAll(query string, filters map[string]interface{}) ([]T, error)
-	GetByID(id int64) (T, error)
+	GetByID(id string) (T, error)
 	Create(item T) error
-	Update(id int64, ctx *gin.Context) error
-	Delete(id int64) error
+	Update(id string, ctx *gin.Context) error
+	Delete(id string) error
 }
 
 type GenericServiceImpl[T any] struct {
@@ -32,7 +32,7 @@ func (s *GenericServiceImpl[T]) GetAll(query string, filters map[string]interfac
 	return s.Repo.FindAll(query, filters)
 }
 
-func (s *GenericServiceImpl[T]) GetByID(id int64) (T, error) {
+func (s *GenericServiceImpl[T]) GetByID(id string) (T, error) {
 	return s.Repo.FindByID(id)
 }
 
@@ -40,7 +40,7 @@ func (s *GenericServiceImpl[T]) Create(item T) error {
 	return s.Repo.Create(item)
 }
 
-func (s *GenericServiceImpl[T]) Update(id int64, ctx *gin.Context) error {
+func (s *GenericServiceImpl[T]) Update(id string, ctx *gin.Context) error {
 	item, err := s.Repo.FindByID(id)
 
 	if err != nil {
@@ -54,6 +54,6 @@ func (s *GenericServiceImpl[T]) Update(id int64, ctx *gin.Context) error {
 	return s.Repo.Update(id, item)
 }
 
-func (s *GenericServiceImpl[T]) Delete(id int64) error {
+func (s *GenericServiceImpl[T]) Delete(id string) error {
 	return s.Repo.Delete(id)
 }
