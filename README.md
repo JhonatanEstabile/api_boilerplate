@@ -68,10 +68,12 @@ go run cmd/create_domain/main.go car Name:string Brand:string Year:int
 
 ```go
 type Car struct {
-    ID    int64  `db:"id" json:"id"`
+    ID    string  `db:"id" json:"id"`
     Name  string `db:"name" json:"name"`
     Brand string `db:"brand" json:"brand"`
     Year  int    `db:"year" json:"year"`
+    CreatedAt   string `json:"created_at" db:"created_at"`
+	UpdatedAt   string `json:"updated_at" db:"updated_at"`
 }
 ```
 
@@ -79,6 +81,35 @@ type Car struct {
 
 ```go
 RegisterGenericResource[model.Car](r, db, "car", model.CarFields)
+```
+
+## Estrutura Padrão dos Models
+
+Os models no projeto seguem a seguinte estrutura padrão:
+
+- `id`: Identificador único do tipo ULID.
+- `created_at`: Timestamp indicando quando o registro foi criado.
+- `updated_at`: Timestamp indicando quando o registro foi atualizado pela última vez.
+
+## Filtragem de Dados
+
+A API suporta filtragem de dados através de parâmetros de consulta (query parameters). Os filtros disponíveis são:
+
+- `eql`: Filtra registros onde o campo é igual ao valor especificado.
+- `lik`: Filtra registros onde o campo corresponde ao padrão especificado utilizando `LIKE`.
+
+### Exemplo de Uso
+
+Para filtrar produtos com o nome exatamente igual a "Produto1":
+
+```
+GET /products?name=eql,Produto1
+```
+
+Para filtrar produtos cujo nome contém "Produto":
+
+```
+GET /products?name=lik,Produto
 ```
 
 ---
