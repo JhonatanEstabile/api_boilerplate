@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/oklog/ulid/v2"
 )
 
 type SqlxRepository[T any] struct {
@@ -46,7 +49,7 @@ func (r *SqlxRepository[T]) FindAll(query string, filtersQuery map[string]interf
 	return items, err
 }
 
-func (r *SqlxRepository[T]) FindByID(id int64) (T, error) {
+func (r *SqlxRepository[T]) FindByID(id string) (T, error) {
 	var item T
 	err := r.DB.Get(&item, fmt.Sprintf("SELECT * FROM %s WHERE id = ?", r.TableName), id)
 	return item, err
@@ -56,23 +59,56 @@ func (r *SqlxRepository[T]) Create(item T) error {
 	fields := strings.Join(r.Fields, ", ")
 	values := strings.Join(r.Fields, ", :")
 
+	dataMap, err := r.convertToMap(item)
+	if err != nil {
+		return err
+	}
+
+	id := ulid.Make()
+
+	dataMap["id"] = id.String()
+	dataMap["created_at"] = time.Now().Format("2006-01-02 15:04:05")
+	dataMap["updated_at"] = time.Now().Format("2006-01-02 15:04:05")
+
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (:%s)", r.TableName, fields, values)
 
-	_, err := r.DB.NamedExec(query, item)
+	_, err = r.DB.NamedExec(query, dataMap)
 	return err
 }
 
-func (r *SqlxRepository[T]) Update(id int64, item T) error {
+func (r *SqlxRepository[T]) convertToMap(item T) (map[string]interface{}, error) {
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *SqlxRepository[T]) Update(id string, item T) error {
 	setClauses := generateQueryFields(r.Fields)
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE id = :id", r.TableName, setClauses)
 
-	_, err := r.DB.NamedExec(query, item)
+	dataMap, err := r.convertToMap(item)
+	if err != nil {
+		return err
+	}
+
+	dataMap["updated_at"] = time.Now().Format("2006-01-02 15:04:05")
+
+	_, err = r.DB.NamedExec(query, dataMap)
 
 	return err
 }
 
-func (r *SqlxRepository[T]) Delete(id int64) error {
+func (r *SqlxRepository[T]) Delete(id string) error {
 	_, err := r.DB.Exec(fmt.Sprintf("DELETE FROM %s WHERE id = ?", r.TableName), id)
 	return err
 }

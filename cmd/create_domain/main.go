@@ -25,13 +25,13 @@ func toPlural(name string) string {
 
 func parseFields(args []string) (string, string) {
 	if len(args) == 0 {
-		return "    ID int64 `db:\"id\" json:\"id\"`\n    Field string `db:\"field\" json:\"field\"`", "\"id\", \"field\""
+		return "    ID string `db:\"id\" json:\"id\"`\n    Field string `db:\"field\" json:\"field\"`", "\"id\", \"field\""
 	}
 
 	var structFields []string
 	var fields []string
 
-	structFields = append(structFields, "    ID int64 `db:\"id\" json:\"id\"`")
+	structFields = append(structFields, "    ID string `db:\"id\" json:\"id\"`")
 	fields = append(fields, "\"id\"")
 	for _, field := range args {
 		parts := strings.Split(field, ":")
@@ -45,6 +45,13 @@ func parseFields(args []string) (string, string) {
 		structFields = append(structFields, fieldLine)
 		fields = append(fields, "\""+dbTag+"\"")
 	}
+
+	structFields = append(structFields, "    CreatedAt string `db:\"created_at\" json:\"created_at\"`")
+	structFields = append(structFields, "    UpdatedAt string `db:\"updated_at\" json:\"updated_at\"`")
+
+	fields = append(fields, "\"created_at\"")
+	fields = append(fields, "\"updated_at\"")
+
 	return strings.Join(structFields, "\n"), strings.Join(fields, ", ")
 }
 
