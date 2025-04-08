@@ -21,9 +21,28 @@ func NewSqlxRepository[T any](
 	return &SqlxRepository[T]{DB: db, TableName: table, Fields: fields}
 }
 
-func (r *SqlxRepository[T]) FindAll() ([]T, error) {
+func (r *SqlxRepository[T]) FindAll(query string, filtersQuery map[string]interface{}) ([]T, error) {
 	var items []T
-	err := r.DB.Select(&items, fmt.Sprintf("SELECT * FROM %s", r.TableName))
+
+	finalQuery := fmt.Sprintf("SELECT * FROM %s %s", r.TableName, query)
+	rows, err := r.DB.NamedQuery(finalQuery, filtersQuery)
+
+	if err != nil {
+		return items, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item T
+
+		err = rows.StructScan(&item)
+		if err != nil {
+			break
+		}
+
+		items = append(items, item)
+	}
+
 	return items, err
 }
 

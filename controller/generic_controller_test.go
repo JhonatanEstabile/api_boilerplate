@@ -24,7 +24,9 @@ type MockService[T any] struct {
 	DeleteFn  func(int64) error
 }
 
-func (m *MockService[T]) GetAll() ([]T, error)                    { return m.GetAllFn() }
+func (m *MockService[T]) GetAll(query string, filters map[string]interface{}) ([]T, error) {
+	return m.GetAllFn()
+}
 func (m *MockService[T]) GetByID(id int64) (T, error)             { return m.GetByIDFn(id) }
 func (m *MockService[T]) Create(item T) error                     { return m.CreateFn(item) }
 func (m *MockService[T]) Update(id int64, ctx *gin.Context) error { return m.UpdateFn(id, ctx) }

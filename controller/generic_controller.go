@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"api_boilerplate/middleware"
 	"api_boilerplate/service"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewGenericController[T any](s service.GenericService[T]) *GenericController
 
 func (c *GenericController[T]) RegisterRoutes(r *gin.Engine, path string) {
 	group := r.Group(path)
-	group.GET("/", c.GetAll)
+	group.GET("/", middleware.FilterMiddleware(), c.GetAll)
 	group.GET("/:id", c.GetByID)
 	group.POST("/", c.Create)
 	group.PUT("/:id", c.Update)
@@ -27,7 +28,10 @@ func (c *GenericController[T]) RegisterRoutes(r *gin.Engine, path string) {
 }
 
 func (c *GenericController[T]) GetAll(ctx *gin.Context) {
-	items, err := c.Service.GetAll()
+	query, _ := ctx.Get("filtersSQL")
+	params, _ := ctx.Get("filtersQuery")
+
+	items, err := c.Service.GetAll(query.(string), params.(map[string]interface{}))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

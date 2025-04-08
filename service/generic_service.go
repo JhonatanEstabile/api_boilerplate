@@ -1,9 +1,11 @@
 package service
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type GenericRepository[T any] interface {
-	FindAll() ([]T, error)
+	FindAll(query string, filtersQUery map[string]interface{}) ([]T, error)
 	FindByID(id int64) (T, error)
 	Create(item T) error
 	Update(id int64, item T) error
@@ -11,7 +13,7 @@ type GenericRepository[T any] interface {
 }
 
 type GenericService[T any] interface {
-	GetAll() ([]T, error)
+	GetAll(query string, filters map[string]interface{}) ([]T, error)
 	GetByID(id int64) (T, error)
 	Create(item T) error
 	Update(id int64, ctx *gin.Context) error
@@ -26,8 +28,8 @@ func NewGenericService[T any](repo GenericRepository[T]) GenericService[T] {
 	return &GenericServiceImpl[T]{Repo: repo}
 }
 
-func (s *GenericServiceImpl[T]) GetAll() ([]T, error) {
-	return s.Repo.FindAll()
+func (s *GenericServiceImpl[T]) GetAll(query string, filters map[string]interface{}) ([]T, error) {
+	return s.Repo.FindAll(query, filters)
 }
 
 func (s *GenericServiceImpl[T]) GetByID(id int64) (T, error) {
