@@ -10,7 +10,7 @@ import (
 )
 
 type TestModel struct {
-	ID   int64  `db:"id"`
+	ID   string `db:"id"`
 	Name string `db:"name"`
 }
 
@@ -46,17 +46,19 @@ func TestFindAll(t *testing.T) {
 }
 
 func TestFindByID(t *testing.T) {
+	var id string = "01JW1A10MR50EPWW5QW7JKTFJE"
+
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
-	row := sqlmock.NewRows([]string{"id", "name"}).AddRow(1, "Item1")
+	row := sqlmock.NewRows([]string{"id", "name"}).AddRow(id, "Item1")
 
 	mock.ExpectQuery("SELECT \\* FROM test_table WHERE id = ?").
-		WithArgs(1).
+		WithArgs(id).
 		WillReturnRows(row)
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
-	item, err := repo.FindByID(1)
+	item, err := repo.FindByID(id)
 
 	assert.NoError(t, err)
 	assert.Equal(t, int64(1), item.ID)
@@ -77,29 +79,33 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	var id string = "01JW1A10MR50EPWW5QW7JKTFJE"
+
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE test_table SET name = ? WHERE id = ?")).
-		WithArgs("Updated", 1).
+		WithArgs("Updated", id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
-	err := repo.Update(1, TestModel{ID: 1, Name: "Updated"})
+	err := repo.Update(id, TestModel{ID: id, Name: "Updated"})
 
 	assert.NoError(t, err)
 }
 
 func TestDelete(t *testing.T) {
+	var id string = "01JW1A10MR50EPWW5QW7JKTFJE"
+
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
 	mock.ExpectExec("DELETE FROM test_table WHERE id = ?").
-		WithArgs(1).
+		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
-	err := repo.Delete(1)
+	err := repo.Delete(id)
 
 	assert.NoError(t, err)
 }
