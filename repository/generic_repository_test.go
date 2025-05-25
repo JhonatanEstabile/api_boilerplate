@@ -25,15 +25,15 @@ func TestFindAll(t *testing.T) {
 	db, mock := setupMockDB(t)
 	defer db.Close()
 
-	filters := map[string]interface{}{"id": int64(1)}
+	filters := map[string]interface{}{"id": "01JW4MH8S671QVVGD0NYY1XWAP"}
 	query := "WHERE id = :id"
 
 	rows := sqlmock.NewRows([]string{"id", "name"}).
-		AddRow(1, "Item1").
-		AddRow(2, "Item2")
+		AddRow("01JW4MH8S671QVVGD0NYY1XWAP", "Item1").
+		AddRow("01JW4MW2JXJQRQXCPP0T8EGPD0", "Item2")
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM test_table WHERE id = ?")).
-		WithArgs(int64(1)).
+		WithArgs("01JW4MH8S671QVVGD0NYY1XWAP").
 		WillReturnRows(rows)
 
 	repo := NewSqlxRepository[TestModel](db, "test_table", []string{"name"})
@@ -41,7 +41,7 @@ func TestFindAll(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, items, 2)
-	assert.Equal(t, int64(1), items[0].ID)
+	assert.Equal(t, "01JW4MH8S671QVVGD0NYY1XWAP", items[0].ID)
 	assert.Equal(t, "Item1", items[0].Name)
 }
 
@@ -61,7 +61,7 @@ func TestFindByID(t *testing.T) {
 	item, err := repo.FindByID(id)
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), item.ID)
+	assert.Equal(t, "01JW1A10MR50EPWW5QW7JKTFJE", item.ID)
 }
 
 func TestCreate(t *testing.T) {

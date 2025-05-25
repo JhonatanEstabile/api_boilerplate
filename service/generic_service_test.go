@@ -12,34 +12,34 @@ import (
 
 type MockRepository[T any] struct {
 	FindAllFn  func() ([]T, error)
-	FindByIDFn func(int64) (T, error)
+	FindByIDFn func(string) (T, error)
 	CreateFn   func(T) error
-	UpdateFn   func(int64, T) error
-	DeleteFn   func(int64) error
+	UpdateFn   func(string, T) error
+	DeleteFn   func(string) error
 }
 
 func (m *MockRepository[T]) FindAll(query string, filters map[string]interface{}) ([]T, error) {
 	return m.FindAllFn()
 }
-func (m *MockRepository[T]) FindByID(id int64) (T, error)  { return m.FindByIDFn(id) }
-func (m *MockRepository[T]) Create(item T) error           { return m.CreateFn(item) }
-func (m *MockRepository[T]) Update(id int64, item T) error { return m.UpdateFn(id, item) }
-func (m *MockRepository[T]) Delete(id int64) error         { return m.DeleteFn(id) }
+func (m *MockRepository[T]) FindByID(id string) (T, error)  { return m.FindByIDFn(id) }
+func (m *MockRepository[T]) Create(item T) error            { return m.CreateFn(item) }
+func (m *MockRepository[T]) Update(id string, item T) error { return m.UpdateFn(id, item) }
+func (m *MockRepository[T]) Delete(id string) error         { return m.DeleteFn(id) }
 
 type TestModel struct {
-	ID   int64
+	ID   string
 	Name string
 }
 
 func TestGenericService_GetAll(t *testing.T) {
 	mockRepo := &MockRepository[TestModel]{
 		FindAllFn: func() ([]TestModel, error) {
-			return []TestModel{{ID: 1, Name: "Test"}}, nil
+			return []TestModel{{ID: "01JW4MH8S671QVVGD0NYY1XWAP", Name: "Test"}}, nil
 		},
 	}
 
 	filters := make(map[string]interface{})
-	filters["id"] = int64(1)
+	filters["id"] = "01JW4MH8S671QVVGD0NYY1XWAP"
 	query := "WHERE id = :id"
 
 	service := NewGenericService[TestModel](mockRepo)
@@ -47,20 +47,20 @@ func TestGenericService_GetAll(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
-	assert.Equal(t, int64(1), result[0].ID)
+	assert.Equal(t, "01JW4MH8S671QVVGD0NYY1XWAP", result[0].ID)
 }
 
 func TestGenericService_GetByID(t *testing.T) {
 	mockRepo := &MockRepository[TestModel]{
-		FindByIDFn: func(id int64) (TestModel, error) {
+		FindByIDFn: func(id string) (TestModel, error) {
 			return TestModel{ID: id, Name: "Test"}, nil
 		},
 	}
 	service := NewGenericService[TestModel](mockRepo)
-	result, err := service.GetByID(1)
+	result, err := service.GetByID("01JW4MH8S671QVVGD0NYY1XWAP")
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(1), result.ID)
+	assert.Equal(t, "01JW4MH8S671QVVGD0NYY1XWAP", result.ID)
 }
 
 func TestGenericService_Create(t *testing.T) {
@@ -72,7 +72,7 @@ func TestGenericService_Create(t *testing.T) {
 		},
 	}
 	service := NewGenericService[TestModel](mockRepo)
-	err := service.Create(TestModel{ID: 2, Name: "New"})
+	err := service.Create(TestModel{ID: "01JW4MH8S671QVVGD0NYY1XWAP", Name: "New"})
 
 	assert.NoError(t, err)
 	assert.True(t, called)
@@ -81,26 +81,26 @@ func TestGenericService_Create(t *testing.T) {
 func TestGenericService_Delete(t *testing.T) {
 	called := false
 	mockRepo := &MockRepository[TestModel]{
-		DeleteFn: func(id int64) error {
+		DeleteFn: func(id string) error {
 			called = true
 			return nil
 		},
 	}
 	service := NewGenericService[TestModel](mockRepo)
-	err := service.Delete(1)
+	err := service.Delete("01JW4MH8S671QVVGD0NYY1XWAP")
 
 	assert.NoError(t, err)
 	assert.True(t, called)
 }
 
 func TestGenericService_Update(t *testing.T) {
-	mockModel := TestModel{ID: 1, Name: "Old Name"}
+	mockModel := TestModel{ID: "01JW4MH8S671QVVGD0NYY1XWAP", Name: "Old Name"}
 	mockRepo := &MockRepository[TestModel]{
-		FindByIDFn: func(id int64) (TestModel, error) {
+		FindByIDFn: func(id string) (TestModel, error) {
 			return mockModel, nil
 		},
-		UpdateFn: func(id int64, updated TestModel) error {
-			assert.Equal(t, int64(1), id)
+		UpdateFn: func(id string, updated TestModel) error {
+			assert.Equal(t, "01JW4MH8S671QVVGD0NYY1XWAP", id)
 			assert.Equal(t, "New Name", updated.Name)
 			return nil
 		},
@@ -116,7 +116,7 @@ func TestGenericService_Update(t *testing.T) {
 	ctx.Request, _ = http.NewRequest(http.MethodPut, "/test/1", body)
 	ctx.Request.Header.Set("Content-Type", "application/json")
 
-	err := service.Update(1, ctx)
+	err := service.Update("01JW4MH8S671QVVGD0NYY1XWAP", ctx)
 
 	assert.NoError(t, err)
 }
